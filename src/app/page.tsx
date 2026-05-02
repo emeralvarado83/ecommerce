@@ -1,65 +1,144 @@
-import Image from "next/image";
+import Link from 'next/link'
+import Image from 'next/image'
+import { prisma } from '@/lib/db'
+import type { Product, Category, ProductImage } from '@prisma/client'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { CardAddButton } from '@/components/shop/card-add-button'
+import { HeroSection } from '@/components/shop/hero-section'
 
-export default function Home() {
+export const dynamic = 'force-dynamic'
+
+type ProductWithRelations = Product & {
+  category: Category | null
+  images: ProductImage[]
+}
+
+async function getFeaturedProducts(): Promise<ProductWithRelations[]> {
+  const products = await prisma.product.findMany({
+    where: { isActive: true, isFeatured: true },
+    include: {
+      category: true,
+      images: { where: { position: 0 }, take: 1 }
+    },
+    take: 4
+  })
+  return products as ProductWithRelations[]
+}
+
+async function getCategories() {
+  const categories = await prisma.category.findMany({
+    take: 6
+  })
+  return categories
+}
+
+export default async function HomePage() {
+  const [featuredProducts, categories] = await Promise.all([
+    getFeaturedProducts(),
+    getCategories()
+  ])
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex flex-col">
+      <HeroSection />
+
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl font-bold mb-8 text-[#111111]">Categorías</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {categories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/categories/${category.slug}`}
+                className="group cursor-pointer"
+              >
+                <div className="border border-gray-200 rounded-[2.5px] overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-[#0A84FF]">
+                  <div className="aspect-square bg-white flex items-center justify-center p-3">
+                    {category.image ? (
+                      <img
+                        src={category.image}
+                        alt={category.name}
+                        className="max-w-full max-h-full w-auto h-auto"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400 font-semibold text-2xl">
+                        {category.name.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 text-center font-medium text-gray-700 group-hover:text-[#0A84FF] transition-colors bg-white">
+                    {category.name}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section className="py-16 bg-[#F5F5F7]">
+        <div className="container mx-auto px-4">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold text-[#111111]">Productos Destacados</h2>
+            <Link href="/products" className="text-[#0A84FF] hover:underline font-medium">
+              Ver todos
+            </Link>
+          </div>
+
+          {featuredProducts.length === 0 ? (
+            <p className="text-gray-600">No hay productos destacados disponibles</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <Card key={product.id} className="shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col rounded-[2.5px]">
+                  <div className="p-3 pb-0">
+                    {product.category && (
+                      <Badge variant="secondary" className="w-fit bg-[#F5F5F7] text-gray-600">
+                        {product.category.name}
+                      </Badge>
+                    )}
+                  </div>
+                  <CardContent className="p-3">
+                    <Link href={`/products/${product.slug}`}>
+                      <div className="relative aspect-square bg-white rounded-[2.5px] overflow-hidden flex items-center justify-center p-4 group-hover:bg-gray-50 transition-colors">
+                        {product.images[0] ? (
+                          <img
+                            src={product.images[0].url}
+                            alt={product.name}
+                            className="max-w-full max-h-full w-auto h-auto object-contain"
+                          />
+                        ) : (
+                          <span className="text-gray-400">Sin imagen</span>
+                        )}
+                      </div>
+                    </Link>
+                  </CardContent>
+                  <div className="px-7 pb-7">
+                    <Link href={`/products/${product.slug}`} className="block">
+                      <h3 className="line-clamp-2 text-sm font-semibold text-[#111111] hover:text-[#0A84FF] transition-colors">
+                        {product.name}
+                      </h3>
+                    </Link>
+                    <div className="mt-1">
+                      <span className="inline-block bg-[#FDCB66] text-black px-3 py-1 rounded-md text-sm font-semibold">
+                        ${Number(product.price).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="mt-auto p-7 pt-0 pb-0 flex justify-between gap-2">
+                    <Button size="sm" className="bg-[rgba(10,132,255,0.5)] hover:bg-[rgba(10,132,255,1)] text-black hover:text-white rounded-[2.5px] px-4 h-10 border border-black/20">
+                      <Link href={`/products/${product.slug}`}>Ver Detalles</Link>
+                    </Button>
+                    <CardAddButton productId={product.id} />
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
-      </main>
+      </section>
     </div>
-  );
+  )
 }
