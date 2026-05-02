@@ -85,11 +85,14 @@ export function Navbar() {
           {session ? (
             <DropdownMenu>
               <DropdownMenuTrigger>
-                <Button variant="ghost" className="font-medium text-gray-700 hover:text-[#0A84FF] cursor-pointer">
+                <span className="font-medium text-gray-700 hover:text-[#0A84FF] cursor-pointer">
                   {session.user.name || session.user.email}
-                </Button>
+                </span>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-white border-gray-200">
+                <DropdownMenuItem>
+                  <Link href="/favorites" className="w-full">Mis Favoritos</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Link href="/orders" className="w-full">Mis Pedidos</Link>
                 </DropdownMenuItem>

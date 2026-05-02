@@ -17,6 +17,9 @@ const productSchema = z.object({
   price: z.number().min(0.01),
   stock: z.number().int().min(0),
   sku: z.string().optional(),
+  brand: z.string().optional(),
+  color: z.string().optional(),
+  condition: z.string().optional(),
   categoryId: z.string().optional(),
   isFeatured: z.boolean(),
   isActive: z.boolean()
@@ -150,6 +153,31 @@ export default function NewProductPage() {
             <div className="space-y-2">
               <Label htmlFor="sku">SKU (opcional)</Label>
               <Input id="sku" {...register('sku')} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="brand">Marca (opcional)</Label>
+                <Input id="brand" {...register('brand')} placeholder="Ej: Corsair, Samsung" />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="color">Color (opcional)</Label>
+                <Input id="color" {...register('color')} placeholder="Ej: Negro, Blanco" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="condition">Estado</Label>
+              <select
+                id="condition"
+                {...register('condition')}
+                className="w-full p-2 border rounded-md"
+              >
+                <option value="Nuevo">Nuevo</option>
+                <option value="Semi-nuevo">Semi-nuevo</option>
+                <option value="Reacondicionado">Reacondicionado</option>
+              </select>
             </div>
 
             <div className="space-y-2">

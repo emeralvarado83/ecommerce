@@ -2,7 +2,6 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/db'
 import type { Product, Category, ProductImage } from '@prisma/client'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AddToCartButton } from './add-to-cart-button'
 import { ProductGallery } from './product-gallery'
@@ -49,12 +48,6 @@ export default async function ProductPage({ params }: Props) {
         <ProductGallery images={product.images} productName={product.name} />
 
         <div>
-          {product.category && (
-            <Badge variant="secondary" className="mb-4 bg-[#F5F5F7] text-gray-600">
-              {product.category.name}
-            </Badge>
-          )}
-
           <h1 className="text-3xl font-bold mb-4 text-[#111111]">{product.name}</h1>
 
           <div className="text-3xl font-bold mb-6 text-[#111111]">
@@ -71,8 +64,38 @@ export default async function ProductPage({ params }: Props) {
             <p>{product.description}</p>
           </div>
 
+          <hr className="my-6 border-gray-200" />
+
+          <div className="space-y-2">
+            <h3 className="font-semibold text-[#111111] mb-3">Detalles del producto</h3>
+            {product.category && (
+              <div className="flex gap-4 py-1">
+                <span className="text-gray-500 w-20 shrink-0">Categoría</span>
+                <span className="text-gray-700 font-medium">{product.category.name}</span>
+              </div>
+            )}
+            {product.brand && (
+              <div className="flex gap-4 py-1">
+                <span className="text-gray-500 w-20 shrink-0">Marca</span>
+                <span className="text-gray-700 font-medium">{product.brand}</span>
+              </div>
+            )}
+            {product.color && (
+              <div className="flex gap-4 py-1">
+                <span className="text-gray-500 w-20 shrink-0">Color</span>
+                <span className="text-gray-700 font-medium">{product.color}</span>
+              </div>
+            )}
+            <div className="flex gap-4 py-1">
+              <span className="text-gray-500 w-20 shrink-0">Estado</span>
+              <span className="text-gray-700 font-medium">{product.condition}</span>
+            </div>
+          </div>
+
           {product.stock > 0 && (
-            <AddToCartButton productId={product.id} />
+            <div className="mt-8">
+              <AddToCartButton productId={product.id} />
+            </div>
           )}
         </div>
       </div>

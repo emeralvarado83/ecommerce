@@ -1,80 +1,95 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { prisma } from '@/lib/db'
-import { Prisma } from '@prisma/client'
-import type { Product, Category, ProductImage } from '@prisma/client'
+import { useSession } from 'next-auth/react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardAddButton } from '@/components/shop/card-add-button'
 import { FavoriteButton } from '@/components/shop/favorite-button'
-import { Search, X } from 'lucide-react'
+import { Heart } from 'lucide-react'
 
-export const dynamic = 'force-dynamic'
-
-type ProductWithRelations = Product & {
-  category: Category | null
-  images: ProductImage[]
+interface Product {
+  id: string
+  name: string
+  slug: string
+  price: number
+  images: { url: string }[]
+  category: { name: string } | null
 }
 
-async function getProducts(searchQuery?: string): Promise<ProductWithRelations[]> {
-  const where: Prisma.ProductWhereInput = searchQuery ? {
-    isActive: true,
-    OR: [
-      { name: { contains: searchQuery, mode: 'insensitive' } },
-      { description: { contains: searchQuery, mode: 'insensitive' } },
-      { category: { name: { contains: searchQuery, mode: 'insensitive' } } }
-    ]
-  } : { isActive: true }
-
-  const products = await prisma.product.findMany({
-    where,
-    include: {
-      category: true,
-      images: { where: { position: 0 }, take: 1 }
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 12
-  })
-  return products as ProductWithRelations[]
+interface FavoriteWithProduct {
+  id: string
+  product: Product
 }
 
-export default async function ProductsPage({
-  searchParams
-}: {
-  searchParams: Promise<{ q?: string }>
-}) {
-  const { q: searchQuery } = await searchParams
-  const products = await getProducts(searchQuery)
+export default function FavoritesPage() {
+  const { data: session, status } = useSession()
+  const [favorites, setFavorites] = useState<FavoriteWithProduct[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      window.location.href = '/login'
+      return
+    }
+
+    if (status === 'authenticated') {
+      const fetchFavorites = async () => {
+        try {
+          const res = await fetch('/api/favorites')
+          const data = await res.json()
+          setFavorites(data.favorites || [])
+        } catch (error) {
+          console.error('Error fetching favorites:', error)
+        } finally {
+          setLoading(false)
+        }
+      }
+
+      fetchFavorites()
+    }
+  }, [status])
+
+  const removeFavorite = (productId: string) => {
+    setFavorites(prev => prev.filter(p => p.id !== productId))
+  }
+
+  if (loading || status === 'loading') {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <p className="text-center text-gray-600">Cargando...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
       <div className="mb-10">
-        <h1 className="text-3xl font-bold text-[#111111]">Productos</h1>
-        {searchQuery ? (
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-gray-600">Resultados para:</span>
-            <span className="bg-[#0A84FF]/10 text-[#0A84FF] px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
-              <Search className="h-4 w-4" />
-              {searchQuery}
-              <Link href="/products" className="hover:text-[#007AE6]">
-                <X className="h-4 w-4" />
-              </Link>
-            </span>
-          </div>
-        ) : (
-          <p className="text-gray-600 mt-2">
-            Explora nuestro catálogo de tecnología
-          </p>
-        )}
+        <h1 className="text-3xl font-bold text-[#111111]">Mis Favoritos</h1>
+        <p className="text-gray-600 mt-2">
+          Productos que has guardado como favoritos
+        </p>
       </div>
 
-      {products.length === 0 ? (
+      {favorites.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-600">No hay productos disponibles</p>
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Heart className="h-8 w-8 text-gray-400" />
+          </div>
+          <p className="text-gray-600 mb-4">No tienes productos en favoritos</p>
+          <Link href="/products">
+            <Button className="bg-[#0A84FF] hover:bg-[#007AE6] text-white">
+              Ver Productos
+            </Button>
+          </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
+          {favorites.map((favorite) => {
+            const product = favorite.product
+            return (
             <Card key={product.id} className="shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col rounded-[2.5px] relative">
               <FavoriteButton productId={product.id} />
               <div className="p-3 pb-0">
@@ -87,7 +102,7 @@ export default async function ProductsPage({
               <CardContent className="p-3">
                 <Link href={`/products/${product.slug}`}>
                   <div className="relative aspect-square bg-white rounded-[2.5px] overflow-hidden flex items-center justify-center p-4 group-hover:bg-gray-50 transition-colors">
-                    {product.images[0] ? (
+                    {product.images?.[0] ? (
                       <img
                         src={product.images[0].url}
                         alt={product.name}
@@ -118,7 +133,7 @@ export default async function ProductsPage({
                 <CardAddButton productId={product.id} />
               </div>
             </Card>
-          ))}
+          )})}
         </div>
       )}
     </div>

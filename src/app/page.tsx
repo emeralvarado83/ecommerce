@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { prisma } from '@/lib/db'
 import type { Product, Category, ProductImage } from '@prisma/client'
 import { Card, CardContent } from '@/components/ui/card'
@@ -7,6 +6,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardAddButton } from '@/components/shop/card-add-button'
 import { HeroSection } from '@/components/shop/hero-section'
+import { CategoriesSlider } from '@/components/shop/categories-slider'
+import { FavoriteButton } from '@/components/shop/favorite-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +15,8 @@ type ProductWithRelations = Product & {
   category: Category | null
   images: ProductImage[]
 }
+
+type CategoryWithRelations = Category
 
 async function getFeaturedProducts(): Promise<ProductWithRelations[]> {
   const products = await prisma.product.findMany({
@@ -27,11 +30,11 @@ async function getFeaturedProducts(): Promise<ProductWithRelations[]> {
   return products as ProductWithRelations[]
 }
 
-async function getCategories() {
+async function getCategories(): Promise<CategoryWithRelations[]> {
   const categories = await prisma.category.findMany({
-    take: 6
+    orderBy: { name: 'asc' }
   })
-  return categories
+  return categories as CategoryWithRelations[]
 }
 
 export default async function HomePage() {
@@ -47,34 +50,7 @@ export default async function HomePage() {
       <section className="py-16">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl font-bold mb-8 text-[#111111]">Categorías</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/categories/${category.slug}`}
-                className="group cursor-pointer"
-              >
-                <div className="border border-gray-200 rounded-[2.5px] overflow-hidden hover:shadow-lg transition-all duration-300 hover:border-[#0A84FF]">
-                  <div className="aspect-square bg-white flex items-center justify-center p-3">
-                    {category.image ? (
-                      <img
-                        src={category.image}
-                        alt={category.name}
-                        className="max-w-full max-h-full w-auto h-auto"
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-gray-400 font-semibold text-2xl">
-                        {category.name.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3 text-center font-medium text-gray-700 group-hover:text-[#0A84FF] transition-colors bg-white">
-                    {category.name}
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <CategoriesSlider categories={categories} />
         </div>
       </section>
 
@@ -92,7 +68,8 @@ export default async function HomePage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product) => (
-                <Card key={product.id} className="shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col rounded-[2.5px]">
+                <Card key={product.id} className="shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col rounded-[2.5px] relative">
+                  <FavoriteButton productId={product.id} />
                   <div className="p-3 pb-0">
                     {product.category && (
                       <Badge variant="secondary" className="w-fit bg-[#F5F5F7] text-gray-600">

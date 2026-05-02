@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CardAddButton } from '@/components/shop/card-add-button'
+import { FavoriteButton } from '@/components/shop/favorite-button'
 
 export const dynamic = 'force-dynamic'
 
@@ -66,7 +67,8 @@ export default async function CategoryPage({ params }: Props) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {products.map((product) => (
-            <Card key={product.id} className="shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col rounded-[2.5px]">
+            <Card key={product.id} className="shadow-md hover:shadow-xl transition-all duration-300 group overflow-hidden flex flex-col rounded-[2.5px] relative">
+              <FavoriteButton productId={product.id} />
               <div className="p-3 pb-0">
                 {product.category && (
                   <Badge variant="secondary" className="w-fit bg-[#F5F5F7] text-gray-600">

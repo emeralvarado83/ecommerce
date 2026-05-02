@@ -11,6 +11,9 @@ const productSchema = z.object({
   price: z.number().min(0),
   stock: z.number().int().min(0),
   sku: z.string().optional(),
+  brand: z.string().optional(),
+  color: z.string().optional(),
+  condition: z.string().optional(),
   categoryId: z.string().optional(),
   isFeatured: z.boolean().default(false),
   isActive: z.boolean().default(true)
@@ -46,6 +49,9 @@ export async function POST(req: Request) {
         price: data.price,
         stock: data.stock,
         sku: data.sku,
+        brand: data.brand || null,
+        color: data.color || null,
+        condition: data.condition || 'Nuevo',
         categoryId: data.categoryId || null,
         isFeatured: data.isFeatured,
         isActive: data.isActive

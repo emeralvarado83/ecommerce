@@ -35,6 +35,7 @@ model User {
   orders       Order[]
   addresses    Address[]
   cart         Cart?
+  favorites    Favorite[]
 }
 
 model Account {
@@ -92,6 +93,9 @@ model Product {
   price       Decimal  @db.Decimal(10, 2)
   stock       Int      @default(0)
   sku         String?   @unique
+  brand       String?
+  color       String?
+  condition   String   @default("Nuevo")
   isActive    Boolean  @default(true)
   isFeatured  Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -102,6 +106,7 @@ model Product {
   images     ProductImage[]
   cartItems  CartItem[]
   orderItems OrderItem[]
+  favorites  Favorite[]
 }
 
 model ProductImage {
@@ -200,4 +205,16 @@ model Payment {
 
   order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId String   @unique
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
 }
