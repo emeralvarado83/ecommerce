@@ -22,9 +22,12 @@ enum OrderStatus {
 model User {
   id            String    @id @default(cuid())
   name          String?
+  lastName      String?
   email         String    @unique
   emailVerified DateTime?
   image         String?
+  phone         String?
+  address       String?
   password      String?
   role          Role      @default(USER)
   createdAt     DateTime  @default(now())

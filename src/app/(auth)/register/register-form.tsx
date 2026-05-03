@@ -11,7 +11,6 @@ import { Label } from '@/components/ui/label'
 import { useState } from 'react'
 
 const registerSchema = z.object({
-  name: z.string().min(2, 'Nombre debe tener al menos 2 caracteres'),
   email: z.string().email('Email inválido'),
   password: z.string().min(6, 'Contraseña debe tener al menos 6 caracteres'),
   confirmPassword: z.string()
@@ -44,7 +43,6 @@ export function RegisterForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: data.name,
           email: data.email,
           password: data.password
         })
@@ -62,7 +60,9 @@ export function RegisterForm() {
         redirect: false
       })
 
-      if (result?.error) {
+      if (result?.error === 'EMAIL_NOT_VERIFIED') {
+        setError('Tu cuenta ha sido creada, recibiras un correo de confirmacion para validar tu cuenta.')
+      } else if (result?.error) {
         setError('Error al iniciar sesión')
       } else {
         router.push('/')
@@ -80,14 +80,6 @@ export function RegisterForm() {
           {error}
         </div>
       )}
-
-      <div className="space-y-2">
-        <Label htmlFor="name" className="text-sm font-medium text-gray-700">Nombre</Label>
-        <Input id="name" className="h-10 border-gray-300 focus:border-[#0A84FF] focus:ring-[#0A84FF]" {...register('name')} />
-        {errors.name && (
-          <p className="text-sm text-red-600">{errors.name.message}</p>
-        )}
-      </div>
 
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>

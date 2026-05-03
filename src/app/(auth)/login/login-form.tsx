@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -88,6 +89,12 @@ export function LoginForm() {
       <Button type="submit" className="w-full bg-[#0A84FF] hover:bg-[#007AE6] text-white h-10" disabled={isSubmitting}>
         {isSubmitting ? 'Ingresando...' : 'Iniciar Sesión'}
       </Button>
+
+      <div className="text-center">
+        <Link href="/forgot-password" className="text-sm text-[#0A84FF] hover:underline">
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </div>
     </form>
   )
 }

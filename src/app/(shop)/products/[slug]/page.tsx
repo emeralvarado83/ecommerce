@@ -5,6 +5,7 @@ import type { Product, Category, ProductImage } from '@prisma/client'
 import { Button } from '@/components/ui/button'
 import { AddToCartButton } from './add-to-cart-button'
 import { ProductGallery } from './product-gallery'
+import { ShareButtons } from '@/components/shop/share-buttons'
 
 export const dynamic = 'force-dynamic'
 
@@ -95,6 +96,7 @@ export default async function ProductPage({ params }: Props) {
           {product.stock > 0 && (
             <div className="mt-8">
               <AddToCartButton productId={product.id} />
+              <ShareButtons productName={product.name} />
             </div>
           )}
         </div>

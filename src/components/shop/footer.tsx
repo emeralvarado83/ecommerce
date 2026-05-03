@@ -1,6 +1,21 @@
+'use client'
+
 import Link from 'next/link'
+import { useSession } from 'next-auth/react'
+
+const categories = [
+  { slug: 'audio', label: 'Audio' },
+  { slug: 'computacion', label: 'Computación' },
+  { slug: 'gaming', label: 'Gaming' },
+  { slug: 'smartphones', label: 'Smartphones' },
+  { slug: 'tablets', label: 'Tablets' },
+  { slug: 'tv-y-entretenimiento', label: 'TV y Entretenimiento' },
+]
 
 export function Footer() {
+  const { data: session } = useSession()
+  const isLoggedIn = !!session
+
   return (
     <footer className="bg-[#1C1C1E] text-white">
       <div className="container mx-auto px-4 py-12">
@@ -15,17 +30,31 @@ export function Footer() {
             <h4 className="font-semibold mb-4">Productos</h4>
             <ul className="space-y-2 text-sm text-gray-400">
               <li><Link href="/products" className="hover:text-[#0A84FF] transition-colors">Todos</Link></li>
-              <li><Link href="/categories/smartphones" className="hover:text-[#0A84FF] transition-colors">Smartphones</Link></li>
-              <li><Link href="/categories/laptops" className="hover:text-[#0A84FF] transition-colors">Laptops</Link></li>
-              <li><Link href="/categories/audio" className="hover:text-[#0A84FF] transition-colors">Audio</Link></li>
+              {categories.map((cat) => (
+                <li key={cat.slug}>
+                  <Link href={`/categories/${cat.slug}`} className="hover:text-[#0A84FF] transition-colors">
+                    {cat.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           <div>
             <h4 className="font-semibold mb-4">Cuenta</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li><Link href="/login" className="hover:text-[#0A84FF] transition-colors">Iniciar Sesión</Link></li>
-              <li><Link href="/register" className="hover:text-[#0A84FF] transition-colors">Registrarse</Link></li>
-              <li><Link href="/orders" className="hover:text-[#0A84FF] transition-colors">Mis Pedidos</Link></li>
+              {!isLoggedIn && (
+                <>
+                  <li><Link href="/login" className="hover:text-[#0A84FF] transition-colors">Iniciar Sesión</Link></li>
+                  <li><Link href="/register" className="hover:text-[#0A84FF] transition-colors">Registrarse</Link></li>
+                </>
+              )}
+              {isLoggedIn && (
+                <>
+                  <li><Link href="/favorites" className="hover:text-[#0A84FF] transition-colors">Mis Favoritos</Link></li>
+                  <li><Link href="/orders" className="hover:text-[#0A84FF] transition-colors">Mis Pedidos</Link></li>
+                  <li><Link href="/account" className="hover:text-[#0A84FF] transition-colors">Mi Cuenta</Link></li>
+                </>
+              )}
             </ul>
           </div>
           <div>
@@ -36,7 +65,7 @@ export function Footer() {
             </p>
           </div>
         </div>
-        <div className="mt-12 pt-8 border-t border-gray-800 text-center text-sm text-gray-500">
+        <div className="mt-12 pt-12 border-t border-gray-800 text-center text-sm text-gray-500">
           © {new Date().getFullYear()} TechStore. Todos los derechos reservados.
         </div>
       </div>
